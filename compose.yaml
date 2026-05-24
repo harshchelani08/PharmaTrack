@@ -1,0 +1,98 @@
+services:
+  # ----------------------------------------------------------------------------
+  # 1. DATABASE: PostgreSQL Core + RLS Enablement
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: pharmatrack-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secure_db_password
+      POSTGRES_DB: pharmatrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # ----------------------------------------------------------------------------
+  # 2. CACHING & REAL-TIME STREAMS: Redis Cache Engine
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: pharmatrack-redis
+    restart: always
+    command: redis-server --requirepass secure_redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  # ----------------------------------------------------------------------------
+  # 3. BACKEND SERVICE: NestJS Main API Monolith
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pharmatrack-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:secure_db_password@postgres:5432/pharmatrack?schema=public
+      - REDIS_URL=redis://:secure_redis_password@redis:6379
+      - GO_INVENTORY_URL=http://go-inventory:8080
+      - GO_SERVICE_API_KEY=go_engine_secure_secret_api_key_56789
+      - JWT_SECRET=pharmatrack_jwt_access_super_secret_token_1298471928
+      - JWT_REFRESH_SECRET=pharmatrack_jwt_refresh_super_secret_token_983749817
+      - JWT_ACCESS_EXPIRATION=15m
+      - JWT_REFRESH_EXPIRATION=7d
+      - STRIPE_API_KEY=sk_test_mock
+      - ANTHROPIC_API_KEY=sk-ant-mock
+    depends_on:
+      - postgres
+      - redis
+
+  # ----------------------------------------------------------------------------
+  # 4. MICROSERVICE: Go Inventory Calculations Engine
+  # ----------------------------------------------------------------------------
+  go-inventory:
+    build:
+      context: ./go-inventory
+      dockerfile: Dockerfile
+    container_name: pharmatrack-go-inventory
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgresql://postgres:secure_db_password@postgres:5432/pharmatrack?sslmode=disable
+      - REDIS_URL=redis:6379
+      - GO_SERVICE_API_KEY=go_engine_secure_secret_api_key_56789
+    depends_on:
+      - postgres
+      - redis
+
+  # ----------------------------------------------------------------------------
+  # 5. CLIENT PORTAL: React Vite Frontend
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pharmatrack-frontend
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - VITE_SOCKET_URL=http://localhost:3000
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  redisdata:

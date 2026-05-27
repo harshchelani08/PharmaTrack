@@ -57,12 +57,20 @@ const recentActivity = [
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-sm px-3 py-2 text-xs">
-        <div className="text-slate-400 font-mono mb-1.5 font-semibold">{label}</div>
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 10,
+        padding: '8px 12px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+        fontSize: 11,
+      }}>
+        <div style={{ color: '#475569', fontFamily: 'JetBrains Mono', marginBottom: 6, fontWeight: 700 }}>{label}</div>
         {payload.map((entry: any, i: number) => (
-          <div key={i} className="flex items-center gap-2">
-            <span style={{ color: entry.color }} className="font-semibold">
-              {entry.name}: ₹{(entry.value / 1000).toFixed(1)}K
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: entry.color, flexShrink: 0 }} />
+            <span style={{ color: '#1e293b', fontWeight: 600 }}>
+              {entry.name}: <span style={{ color: entry.color }}>₹{(entry.value / 1000).toFixed(1)}K</span>
             </span>
           </div>
         ))}
@@ -280,7 +288,16 @@ export const Dashboard: React.FC = () => {
               </Pie>
               <Tooltip
                 formatter={(value: number, name: string) => [`${value}%`, name]}
-                contentStyle={{ background: '#0c1628', border: '1px solid #1e293b', borderRadius: 10, fontSize: 11 }}
+                contentStyle={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 10,
+                  fontSize: 11,
+                  color: '#1e293b',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                }}
+                itemStyle={{ color: '#1e293b', fontWeight: 600 }}
+                labelStyle={{ color: '#475569', fontWeight: 700 }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -314,7 +331,19 @@ export const Dashboard: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" strokeOpacity={0.5} horizontal={false} />
               <XAxis type="number" tickFormatter={(v) => `₹${v / 1000}K`} tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="branch" tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} width={45} />
-              <Tooltip formatter={(v: number) => [`₹${(v / 1000).toFixed(0)}K`]} contentStyle={{ background: '#0c1628', border: '1px solid #1e293b', borderRadius: 10, fontSize: 11 }} />
+              <Tooltip
+                formatter={(v: number) => [`₹${(v / 1000).toFixed(0)}K`]}
+                contentStyle={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 10,
+                  fontSize: 11,
+                  color: '#1e293b',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                }}
+                itemStyle={{ color: '#1e293b', fontWeight: 600 }}
+                labelStyle={{ color: '#475569', fontWeight: 700 }}
+              />
               <Bar dataKey="target" fill="#1e293b" radius={3} name="Target" />
               <Bar dataKey="revenue" fill="#10b981" radius={3} name="Revenue" />
             </BarChart>
